@@ -1,0 +1,77 @@
+---
+title: "Appendix_3"
+output: word_document
+---
+
+## Load and merge all democracy data
+
+```{r}
+#load 
+democ <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/POLITYIV/p5v2018.xlsx")
+
+attach(democ)
+
+democ2 <- democ[,c("Country_Code", "Name", "year", "democ")]
+
+
+
+#tidy up
+attach(democ2)
+
+names(democ2)[which(names(democ2) == "year")] <- "Year"
+
+
+democ2$Name <- trimws(democ2$Name)
+democ2$Year <- trimws(democ2$Year)
+democ2$Country_Code <- trimws(democ2$Country_Code)
+
+
+
+#merge
+
+new_exp_val_7 <- merge(new_exp_val_6, democ2, by = c("Name","Year","Country_Code"), all.x = TRUE)
+
+
+```
+
+
+
+## Tidyinging up pre-final dataset
+```{r}
+
+#recording variables as numeric or factor 
+
+new_exp_val_7$Year <- as.numeric(new_exp_val_7$Year)
+new_exp_val_7$CO2_kt <- as.numeric(new_exp_val_7$CO2_kt)
+new_exp_val_7$SO2_kt <- as.numeric(new_exp_val_7$SO2_kt)
+new_exp_val_7$PM10_kt <- as.numeric(new_exp_val_7$PM10_kt)
+
+new_exp_val_7$'Urban_Pop_%of_total' <- as.numeric(new_exp_val_7$'Urban_Pop_%of_total')
+
+new_exp_val_7$Merchandise_Exported_to_EU_thousandsUSD <- as.numeric(new_exp_val_7$Merchandise_Exported_to_EU_thousandsUSD)
+
+new_exp_val_7$GDP_cur_USD <- as.numeric(new_exp_val_7$GDP_cur_USD)
+
+new_exp_val_7$'Electricity_from_coal_%oftotal' <- as.numeric(new_exp_val_7$'Electricity_from_coal_%oftotal')
+
+new_exp_val_7$'Electricity_from_renewables_%oftotal' <- as.numeric(new_exp_val_7$'Electricity_from_renewables_%oftotal')
+
+new_exp_val_7$'Manufacturing_value_added_%ofGDP' <- as.numeric(new_exp_val_7$'Manufacturing_value_added_%ofGDP')
+
+new_exp_val_7$'FDI_netinflow_%ofGDP' <- as.numeric(new_exp_val_7$'FDI_netinflow_%ofGDP')
+
+new_exp_val_7$democ <- as.factor(new_exp_val_7$democ)
+
+
+summary(new_exp_val_7)
+
+n_complete_rows <- sum(complete.cases(new_exp_val_7))
+cat("Number of rows with non-missing values for all columns: ", n_complete_rows, "\n")
+
+n_na_rows <- sum(rowSums(is.na(new_exp_val_7)) > 0)
+cat("Number of rows with NAs: ", n_na_rows, "\n")
+
+
+
+```
+

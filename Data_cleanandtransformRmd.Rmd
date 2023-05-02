@@ -1,0 +1,175 @@
+---
+title: "Appendix4b"
+output: word_document
+---
+
+
+
+
+#Load Data
+```{r}
+completely_loaded_data <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/EU_Effect.xlsx")
+```
+
+## Explore missing data
+
+# Analysis of patterns in missing data
+```{r}
+
+#Count of NAs
+summary(completely_loaded_data)
+options(max.print = 50000)
+
+
+# Plot the missing data pattern
+
+png("md_pattern.png", width = 2600, height = 2400)
+md.pattern(completely_loaded_data, plot = TRUE, rotate.names = TRUE)
+dev.off()
+
+
+#Alternative ways of analyzing missing data
+
+p <- vis_miss(completely_loaded_data)
+ggsave("missingness_plot.pdf", plot = p)
+
+gg_miss_upset(completely_loaded_data)
+
+```
+
+
+
+## Remove Democracy and Electricity from coal
+```{r}
+completely_loaded_data_2 <- select(completely_loaded_data, -'democ', -'Electricity_from_coal_%oftotal')
+
+# Plot the missing data pattern
+
+png("md_pattern_2.png", width = 2600, height = 2400)
+md.pattern(completely_loaded_data_2, plot = TRUE, rotate.names = TRUE)
+dev.off()
+```
+
+##Exploring how to deal with NAs
+
+```{r}
+
+#Remove the 48 NA's in our trade data
+completely_loaded_data_3 <- completely_loaded_data_2[complete.cases(completely_loaded_data_2[, c(9, 14)]), ]
+
+# Plot the missing data pattern
+
+png("md_pattern_3.png", width = 2600, height = 2400)
+md.pattern(completely_loaded_data_3, plot = TRUE, rotate.names = TRUE)
+dev.off()
+
+#tidy up col names
+names(completely_loaded_data_3)[8] <- "Urban_Pop_perc_of_total"
+names(completely_loaded_data_3)[11] <- "Electricity_from_renewables_perc_oftotal"
+names(completely_loaded_data_3)[12] <- "Manufacturing_value_added_perc_ofGDP"
+names(completely_loaded_data_3)[13] <- "FDI_netinflow_perc_ofGDP"
+
+
+#Remove NAs if they appear all together
+
+completely_loaded_data_4 <- completely_loaded_data_3[!(rowSums(is.na(completely_loaded_data_3[, c("Urban_Pop_perc_of_total", "GDP_cur_USD", "Electricity_from_renewables_perc_oftotal", "Manufacturing_value_added_perc_ofGDP", "FDI_netinflow_perc_ofGDP")])) == 5), ]
+
+png("md_pattern_4.png", width = 2600, height = 2400)
+md.pattern(completely_loaded_data_4, plot = TRUE, rotate.names = TRUE)
+dev.off()
+
+```
+
+
+#Exploirng having all the NAs removed
+
+```{r}
+
+#Remove the all NAs
+completely_loaded_data_0NA <- completely_loaded_data_3[complete.cases(completely_loaded_data_3[, c(8, 10, 11, 12, 13)]), ]
+
+
+# Plot the missing data pattern
+
+png("md_pattern_0NA.png", width = 2600, height = 2400)
+md.pattern(completely_loaded_data_0NA, plot = TRUE, rotate.names = TRUE)
+dev.off()
+
+attach(completely_loaded_data_3)
+
+#compare averages
+summary(completely_loaded_data_3)
+summary(completely_loaded_data_3)
+summary(completely_loaded_data_0NA)
+```
+
+# Imputation of rest of NAs using MICE
+
+```{r}
+# Impute missing data using mice with the rf method, first remove irrelevant variables
+completely_loaded_data_5 <- completely_loaded_data_4[, !(names(completely_loaded_data_4) %in% c("Country_Code", "IPCC_annex"))]
+
+completely_loaded_data_5_mice = mice(completely_loaded_data_5, m=5, method= 'rf', maxit = 5)
+
+
+# Extract each imputed dataset using complete()
+completed_data_1 <- complete(completely_loaded_data_5_mice, 1)
+completed_data_2 <- complete(completely_loaded_data_5_mice, 2)
+completed_data_3 <- complete(completely_loaded_data_5_mice, 3)
+completed_data_4 <- complete(completely_loaded_data_5_mice, 4)
+completed_data_5 <- complete(completely_loaded_data_5_mice, 5)
+
+#Compare the imputed values in each data set to the original data
+
+
+
+summary(completely_loaded_data_4)
+summary(completed_data_1)
+summary(completed_data_2)
+summary(completed_data_3)
+summary(completed_data_4)
+summary(completed_data_5)
+summary(completley_loaded_data_0NA)
+
+
+# Impute missing values in the original data set using the pooled model. This data set is 5 times larger than the original 
+
+imputed_data <- complete(completely_loaded_data_5_mice, action = "long")
+
+
+```
+
+
+
+#Now have three datasets
+#imputed_data= all 5 commpleted datasets
+#completed_data1-5= iniduvdal completed datasets
+#completely_loaded_data_5= Original dataset with NAs
+
+
+
+
+#Logarithmic transformation of imputed data
+
+```{r}
+
+imputed_data_numeric <- select(imputed_data, -.imp:-Year)
+
+# apply log() to all columns except 'a', 'b', and 'c'
+imputed_data_numeric_logged <- imputed_data_numeric %>% 
+  mutate_at(vars(-FDI_netinflow_perc_ofGDP, -Electricity_from_renewables_perc_oftotal, -Merchandise_Exported_NonEU_Annex1_thousandsUSD), log) %>%
+  mutate(FDI_netinflow_perc_ofGDP = log(abs(FDI_netinflow_perc_ofGDP) + 0.00106616457) * sign(FDI_netinflow_perc_ofGDP)) %>%
+  mutate(Electricity_from_renewables_perc_oftotal = log1p(Electricity_from_renewables_perc_oftotal)) %>%
+  mutate(Merchandise_Exported_NonEU_Annex1_thousandsUSD = log1p(Merchandise_Exported_NonEU_Annex1_thousandsUSD))
+  
+  
+
+ # combing log transformation values with the non-numeric data
+
+imputed_data_non_numeric <- select(imputed_data, .imp, .id, Name, Year)
+imputed_data_final_logged <-combined_df <- cbind(imputed_data_non_numeric, imputed_data_numeric_logged)
+  
+```
+
+
+

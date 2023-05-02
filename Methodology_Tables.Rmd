@@ -1,0 +1,187 @@
+---
+title: "Appendix4c"
+output: html_notebook
+---
+
+# Construction of varriable table with descriptions
+```{r}
+
+# Read in the data
+variable_table <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/varriable_table.xlsx")
+variable_table <- mutate_all(variable_table, trimws)
+variable_table <- as.data.frame(variable_table)
+
+# Create the HTML table with a title
+variable_table_html <- knitr::kable(variable_table, format = "html", align = "c", row.names = FALSE) %>%
+  kable_styling(full_width = FALSE) %>%
+  add_header_above(c("Codebook" = ncol(variable_table)))
+
+# Save the table to an HTML file
+html_file <- "table.html"
+cat(as.character(variable_table_html), file = html_file)
+
+
+```
+
+
+#completely_loaded_data is the datset with all varriables inlcuding NAs
+#imputed_data is the datset with the imputed values for the NAs using mice(), it is x5 larger
+#imputed_data_final_logged is the imputed_data logged()
+
+
+#Sampling method
+```{r}
+# Stratified sample of completely loaded data and imputed data (not logged) for comparison early on
+
+sample_size <- 80  # Change this to your desired sample size
+completely_loaded_data_stratified_sample <- completely_loaded_data %>%
+  distinct(Name, Year, .keep_all = TRUE) %>%
+  group_by(Year) %>%
+  sample_n(size = sample_size, replace = FALSE, strata = c("Name"), na.rm = TRUE) %>%
+  ungroup()
+
+
+
+sample_size <- 80  # Change this to your desired sample size
+imputed_data_stratified_sample <- imputed_data %>%
+  mutate(.imp = sample(c(1, 2, 3, 4, 5), size = n(), replace = TRUE)) %>%
+  distinct(Name, Year, .keep_all = TRUE) %>%
+  group_by(Year) %>%
+  sample_n(size = sample_size, replace = FALSE, weight = .imp, strata = c("Name"), na.rm = TRUE) %>%
+  ungroup()
+
+
+#Comparison of original data, imputed data and stratified sample of imputed  data
+
+summary(completely_loaded_data_stratified_sample) # stratified sample of the completely_loaded_data is the data set with all variables including NAs
+
+summary(imputed_data_stratified_sample) # stratified sample of the imputed_data is the dataset with the imputed values for the NAs using mice(), it is x5 larger
+
+
+
+
+#Comparing their RMSE of stratified samples
+rmse_orig <- RMSE(completely_loaded_data_stratified_sample$CO2, completely_loaded_data_stratified_sample$CO2, na.rm = TRUE)
+
+rmse_imp <- RMSE(imputed_data_stratified_sample$CO2, completely_loaded_data_stratified_sample$CO2, na.rm = TRUE)
+
+
+#NB 10% of range rule of thumb
+cat("RMSE for original data:", rmse_orig, "\n")
+cat("RMSE for imputed data:", rmse_imp, "\n")
+
+
+#Check both are the samle length to prevent warning message
+sum(!is.na(completely_loaded_data_stratified_sample$CO2))
+sum(!is.na(imputed_data_stratified_sample$CO2))
+
+
+
+
+# Stratified sampling of the logged imputed data-set for empirical analysis section
+#NB: imputed_data_final_logged is the imputed_data logged()
+#this version is latest, to avoid repeats
+sample_size <- 80  # Change this to your desired sample size
+SS_imputed_data_final_logged <- imputed_data_final_logged %>%
+  mutate(.imp = sample(c(1, 2, 3, 4, 5), size = n(), replace = TRUE)) %>%
+  distinct(Name, Year, .keep_all = TRUE) %>%
+  group_by(Year) %>%
+  sample_n(size = sample_size, replace = FALSE, weight = .imp, strata = c("Name"), na.rm = TRUE) %>%
+  ungroup()
+
+# The resulting 'stratified_sample' data frame will contain a random sample of 80 'Name'
+# for each year, selected from one of the 5 '.imp' using stratified sampling.
+
+
+unique(SS_imputed_data_final_logged$Name)
+
+write.xlsx(SS_imputed_data_final_logged, "final_sample_imputed_logged_data.xlsx")
+```
+
+
+
+#Data Name Cleaning 
+```{r}
+#completely_loaded_data_stratified_sample
+
+attach(completely_loaded_data_stratified_sample)
+completely_loaded_data_stratified_sample <- select(completely_loaded_data_stratified_sample, -Country_Code, -IPCC_annex)
+
+names(completely_loaded_data_stratified_sample)[3] <- "CO2"
+names(completely_loaded_data_stratified_sample)[4] <- "SO2"
+names(completely_loaded_data_stratified_sample)[5] <- "PM10"
+names(completely_loaded_data_stratified_sample)[6] <- "Urabn_Pop"
+names(completely_loaded_data_stratified_sample)[7] <- "EU_Exp"
+names(completely_loaded_data_stratified_sample)[8] <- "GDP"
+names(completely_loaded_data_stratified_sample)[9] <- "Renewables"
+names(completely_loaded_data_stratified_sample)[10] <- "Manufacturing"
+names(completely_loaded_data_stratified_sample)[11] <- "FDI"
+names(completely_loaded_data_stratified_sample)[12] <- "Democ"
+names(completely_loaded_data_stratified_sample)[13] <- "nonEU_AnnexI_Exp"
+
+completely_loaded_data_stratified_sample <- select(completely_loaded_data_stratified_sample,Name, Year, CO2, SO2, PM10, EU_Exp, nonEU_AnnexI_Exp, GDP, Urabn_Pop, Renewables, Manufacturing, FDI, Democ)
+
+names(completely_loaded_data_stratified_sample)[9] <- "Urban_Pop"
+
+#imputed_data_stratified_sample
+
+names(imputed_data_stratified_sample)[5] <- "CO2"
+names(imputed_data_stratified_sample)[6] <- "SO2"
+names(imputed_data_stratified_sample)[7] <- "PM10"
+names(imputed_data_stratified_sample)[8] <- "Urabn_Pop"
+names(imputed_data_stratified_sample)[9] <- "EU_Exp"
+names(imputed_data_stratified_sample)[10] <- "GDP"
+names(imputed_data_stratified_sample)[11] <- "Renewables"
+names(imputed_data_stratified_sample)[12] <- "Manufacturing"
+names(imputed_data_stratified_sample)[13] <- "FDI"
+names(imputed_data_stratified_sample)[14] <- "nonEU_AnnexI_Exp"
+
+names(imputed_data_stratified_sample)
+attach(imputed_data_stratified_sample)
+imputed_data_stratified_sample <- select(imputed_data_stratified_sample, '.imp', '.id', Name, Year, CO2, SO2, PM10, EU_Exp, nonEU_AnnexI_Exp, GDP, Urabn_Pop, Renewables, Manufacturing, FDI)
+
+names(imputed_data_stratified_sample)[11] <- "Urban_Pop"
+
+#SS_imputed_data_final_logged
+
+names(SS_imputed_data_final_logged)[5] <- "CO2"
+names(SS_imputed_data_final_logged)[6] <- "SO2"
+names(SS_imputed_data_final_logged)[7] <- "PM10"
+names(SS_imputed_data_final_logged)[8] <- "Urabn_Pop"
+names(SS_imputed_data_final_logged)[9] <- "EU_Exp"
+names(SS_imputed_data_final_logged)[10] <- "GDP"
+names(SS_imputed_data_final_logged)[11] <- "Renewables"
+names(SS_imputed_data_final_logged)[12] <- "Manufacturing"
+names(SS_imputed_data_final_logged)[13] <- "FDI"
+names(SS_imputed_data_final_logged)[14] <- "nonEU_AnnexI_Exp"
+
+names(SS_imputed_data_final_logged)
+attach(SS_imputed_data_final_logged)
+SS_imputed_data_final_logged <- select(SS_imputed_data_final_logged, '.imp', '.id', Name, Year, CO2, SO2, PM10, EU_Exp, nonEU_AnnexI_Exp, GDP, Urabn_Pop, Renewables, Manufacturing, FDI)
+
+names(SS_imputed_data_final_logged)[11] <- "Urban_Pop"
+```
+
+
+
+#Table 2 and 3
+
+```{r}
+# original data, Table 2  
+
+
+table2 <- as.data.frame(completely_loaded_data_stratified_sample)
+
+stargazer(table2, type = "html", summary.stat = c("mean", "sd", "min", "max", "p25", "p75"), title = "Summary Statisitcs of Original Data Sample", out='table2.html' )
+
+any(is.na(table2))
+
+
+
+#imputed data, Table 3
+table3<- as.data.frame(imputed_data_stratified_sample)
+stargazer(select(table3, -c(.imp, .id)), type = "html", summary.stat = c("mean", "sd", "min", "max", "p25", "p75"), title = "Summary Statisitcs of Imputed Data Sample", out='table3.html' )
+
+
+```
+

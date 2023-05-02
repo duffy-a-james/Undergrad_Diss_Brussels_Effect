@@ -1,0 +1,284 @@
+---
+title: "Analysis"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Load relevant packages for pannel regression modelling
+```{r}
+library(tidyverse) # Modern data science library 
+library(plm)       # Panel data analysis library
+library(car)       # Companion to applied regression 
+library(gplots)    # Various programing tools for plotting data
+library(tseries)   # For timeseries analysis
+library(lmtest)    # For hetoroskedasticity analysis
+```
+
+
+
+
+#Iniatal Data Anlsysis ggpairs()
+```{r}
+
+ggpairs_plot <- ggpairs(select(SS_imputed_data_final_logged, -Name, -Year, -'.imp', -'.id')) +
+  theme_minimal()    
+
+ggsave("ggpairs_plot.png", ggpairs_plot, width = 12, height = 6, dpi = 300)
+
+```
+
+
+#Inital Data Analysis specific for pannel data
+
+```{r}
+
+#coplot
+pdf("myplot.pdf", width=10, height=10)
+coplot(CO2 ~ Year|Name, type = "b", data= SS_imputed_data_final_logged)
+
+
+#scatterplot
+
+pdf("myplot2.pdf", width=10, height=10)
+scatterplot(CO2 ~ Year|Name, data= SS_imputed_data_final_logged)
+
+
+#---
+
+#scaterplot for 10 random countries
+
+set.seed(1234) # for reproducibility
+
+# select a random sample of 10 'Name' values
+random_names <- sample(unique(SS_imputed_data_final_logged$Name), 10)
+
+# subset the data to include only the randomly selected 'Name' values
+subset_data <- SS_imputed_data_final_logged[SS_imputed_data_final_logged$Name %in% random_names, ]
+
+# create a scatterplot for each of the selected 'Name' values
+pdf("myplot2a.pdf", width=12, height=12)
+par(mfrow=c(2,5)) # arrange the plots in a 2x5 grid
+for (name in random_names) {
+  plot(subset_data$Year[subset_data$Name == name], 
+       subset_data$CO2[subset_data$Name == name], 
+       xlab = "Year", ylab = "CO2",
+       main = paste("Scatterplot for", name))
+  lines(subset_data$Year[subset_data$Name == name], 
+        subset_data$CO2[subset_data$Name == name])
+}
+dev.off()
+
+
+
+
+#OR
+
+
+
+set.seed(123) # for reproducibility
+
+# select a random sample of 10 'Name' values
+random_names <- sample(unique(SS_imputed_data_final_logged$Name), 10)
+
+# subset the data to include only the randomly selected 'Name' values
+subset_data <- SS_imputed_data_final_logged[SS_imputed_data_final_logged$Name %in% random_names, ]
+
+# create a scatterplot for each of the selected 'Name' values
+myplot <- ggplot(subset_data, aes(x = Year, y = CO2, color = Name)) +
+  geom_point() +
+  facet_wrap(~Name, ncol = 5) +
+  labs(title = "Scatterplot for Randomly Selected Names",
+       x = "Year",
+       y = "CO2")
+
+ggsave("myplot2b.pdf", plot = myplot, width = 10, height = 10)
+
+
+
+
+
+#OR
+
+
+
+# select a random sample of 10 'Name' values
+set.seed(123) # for reproducibility
+random_names <- sample(unique(SS_imputed_data_final_logged$Name), 10)
+
+# subset the data to include only the randomly selected 'Name' values
+subset_data <- SS_imputed_data_final_logged %>%
+  filter(Name %in% random_names)
+
+# create a scaterplot with all the randomly selected 'Name' values
+ggplot(subset_data, aes(x = Year, y = CO2, color = Name)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  ggtitle("Scatterplot for 10 Random Countries") +
+  theme_minimal()
+
+
+
+```
+
+
+
+#Heterogeniety
+```{r}
+
+# Heterogeneity across countries
+pdf("myplot3.pdf", width=10, height=10)
+plotmeans(CO2 ~ Name, data = SS_imputed_data_final_logged)
+
+
+#Heterogeneity across years
+pdf("myplot4.pdf", width=10, height=10)
+plotmeans(CO2 ~ Year, data = SS_imputed_data_final_logged)
+```
+
+
+#Further Data Analysis
+
+
+#Basic OLS model
+
+```{r}
+
+#Basic OLS model
+#The basic OLS regression model does not consider heterogeneity across countries or across years
+ols <- lm(CO2 ~ ., data = select(SS_imputed_data_final_logged, -c(Name, .imp, .id)))
+summary(ols)
+
+plot(ols)
+
+#Visually represented
+yhat <- ols$fitted
+ggplot(select(SS_imputed_data_final_logged, -c(Name, .imp, .id)), aes(x = EU_Exp, y = CO2))+
+  geom_point() +
+  geom_smooth(method=lm)
+
+
+```
+
+#Country-Specific Fixed Effects using Dummy Variables (LSDV Model)
+
+```{r}
+
+
+fixed.dum <-lm(CO2 ~ EU_Exp + factor(Name) - 1, data = select(SS_imputed_data_final_logged, -c(Name, .imp, .id,)))
+summary(fixed.dum)
+
+pdf("lsdv.pdf", width=10, height=10)
+sampled_names <- sample(unique(SS_imputed_data_final_logged$Name), 10)
+subset_data <- subset(SS_imputed_data_final_logged, Name %in% sampled_names)
+subset_model <- lm(CO2 ~ EU_Exp + factor(Name) - 1, data = subset_data)
+yhat <- predict(subset_model, newdata = subset_data)
+scatterplot(yhat ~ EU_Exp | Name, data = subset_data, xlab ="GS Merch Export", ylab ="yhat", boxplots = FALSE, smooth = FALSE)
+abline(lm(CO2 ~ EU_Exp, data = subset_data), lwd=3, col="red")
+
+
+
+#OR 
+library(RColorBrewer)
+
+pdf("lsdv.pdf", width=10, height=10)
+
+sampled_names <- sample(unique(SS_imputed_data_final_logged$Name), 10)
+
+subset_data <- subset(SS_imputed_data_final_logged, Name %in% sampled_names)
+
+subset_model <- lm(CO2 ~ EU_Exp + factor(Name) - 1, data = subset_data)
+
+yhat <- predict(subset_model, newdata = subset_data)
+
+palette <- brewer.pal(nlevels(subset_data$Name), "Set1") # create custom color palette
+
+scatterplot(yhat ~ EU_Exp | Name, data = subset_data, xlab ="GS Merch Export", ylab ="yhat", boxplots = FALSE, smooth = FALSE, col=palette)
+
+abline(lm(CO2 ~ EU_Exp, data = subset_data), lwd=3, col="red")
+
+dev.off()
+
+
+
+```
+
+
+
+
+
+
+#Country-Specific Fixed Effects using the plm package
+```{r}
+fixed <- plm(CO2 ~ EU_Exp, data= select(SS_imputed_data_final_logged, -c(.imp, .id)), model="within")
+summary(fixed)
+
+fixef(fixed)
+
+pFtest(fixed, ols)
+
+#If the p-value is < 0.05 then the fixed effects model is a better choice, ours is almost equivalent to 0
+
+
+```
+
+# Random Effect modelling using plm
+
+```{r}
+random <- plm(CO2 ~ EU_Exp, data= select(SS_imputed_data_final_logged, -c(.imp, .id)), model="random")
+summary(random)
+```
+
+#Fixed vs Random
+
+```{r}
+
+phtest(fixed, random)
+
+
+# To decide between fixed or random effects you can run a Hausman test where the null hypothesis is that the preferred model is random effects vs. the alternative the fixed effects (see Green, 2008, chapter 9). It basically tests whether the unique errors are correlated with the regressors, the null hypothesis is they are not. If the p-value is significant (for example <0.05) then use fixed effects, if not use random effects. 
+
+#Here it shows we should use the fixed effect model.
+```
+
+
+
+
+```{r}
+#OLD BUT KEEP FOR NOW
+
+# Perform linear regression analysis on each completed dataset
+#all the R2 of all the model around 30-40 other than GDP which was 74.5
+model <- plm(CO2_kt ~ GDP_cur_USD + factor(Name), data = completed_data_1, model = "within")
+summary(model)
+
+model1 <- plm(CO2_kt ~ Merchandise_Exported_to_EU_thousandsUSD + factor(Name), data = completed_data_1, model = "within")
+model2 <- plm(CO2_kt ~ Merchandise_Exported_to_EU_thousandsUSD + factor(Name), data = completed_data_2, model = "within")
+model3 <- plm(CO2_kt ~ Merchandise_Exported_to_EU_thousandsUSD + factor(Name), data = completed_data_3, model = "within")
+model4 <- plm(CO2_kt ~ Merchandise_Exported_to_EU_thousandsUSD + factor(Name), data = completed_data_4, model = "within")
+model5 <- plm(CO2_kt ~ Merchandise_Exported_to_EU_thousandsUSD + factor(Name), data = completed_data_5, model = "within")
+
+
+# Combine estimates and standard errors using Rubin's rules
+fit_pool <- pool(list(model1, model2, model3, model4, model5))
+
+# Print pooled coefficients and standard errors
+summary(fit_pool)
+
+pool
+
+# Pool model results using plm::pool()
+pooled <- pool(melded)
+
+# View pooled estimates and standard errors
+summary(pooled)
+
+qqnorm(model1)
+qqline(model1)
+
+plot(model1)
+
+```
+

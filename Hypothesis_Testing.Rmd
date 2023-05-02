@@ -1,0 +1,314 @@
+---
+title: "Hypothesis_Testing"
+output: word_document
+---
+#Previous Anlysis shown why the fixed effect model should be used
+#Also helped you to get to grips with various relevent packages and functions
+
+#Reload of some relevent packages
+```{r}
+library(tidyverse) # Modern data science library 
+library(plm)       # Panel data analysis library
+library(car)       # Companion to applied regression 
+library(gplots)    # Various programming tools for plotting data
+library(tseries)   # For timeseries analysis
+library(lmtest)    # For hetoroskedasticity analysis
+library(openxlsx)  # Load excel files
+library(writexl)   # Write excel files
+library(stargazer) # Create nice tables
+library(urca)      #Unit root testing
+```
+
+#Load data 
+
+```{r}
+SS_imputed_data_final_logged <-read.xlsx("final_sample_imputed_logged_data.xlsx")  
+```
+
+
+#Creating a full model
+```{r}
+fixed_time <- plm(CO2 ~ EU_Exp + nonEU_AnnexI_Exp + GDP + Urban_Pop + Renewables + Manufacturing + FDI, data= select(SS_imputed_data_final_logged, -c(.imp, .id)),index = c("Name", "Year"), model="within", effect = "time")
+summary(fixed_time)
+
+fixed_twoways <- plm(CO2 ~ EU_Exp + nonEU_AnnexI_Exp + GDP + Urban_Pop + Renewables + Manufacturing + FDI, data= select(SS_imputed_data_final_logged, -c(.imp, .id)),index = c("Name", "Year"), model="within", effect = "twoways")
+summary(fixed_twoways)
+
+
+# When running the two way effect, also considering country differences, very low R2 and more reason to doubt Brussels Effect since non_EU_Annex 1 more statistically significant, higher p value. However other such models seem problematic and didn't produce the signs we could expect e.g Renewable. The time effect model produced the right signs
+
+#strongest model which takes adjusted R2 form 83% to 84% is GDP, Urban Pop, Renewable 
+
+
+```
+
+#Fitting our full fixed model
+
+```{r}
+fixed_time <- plm(CO2 ~ EU_Exp + nonEU_AnnexI_Exp + GDP + Urban_Pop + Renewables + Manufacturing + FDI, data= select(SS_imputed_data_final_logged, -c(.imp, .id)),index = c("Name", "Year"), model="within", effect = "time")
+summary(fixed_time)
+
+
+#All the signs seem right, no indication of multicollinearity
+# # Interpret all esp EU_Exp coefficient of -0.030627 
+#Formally judge fit of full model fixed_time using F test
+#We can formally judge the fit of the adjusted R2 value in our full_model where the formal test is given by the result:
+#	H0:R2=0 the set of explanatory variables are insignificant
+#	H1:R2>0 the set of explanatory variables are significant
+#The F-test decision rule can be summarized as:
+#	if F_calc<F_crit=>H_0
+#	if F_calc>F_crit=>H_1
+
+#F stats: F Calc = 486.67, on 7 and 1889 DF
+
+fixed_time_qf <- qf(0.95, 7, 1889)
+print(fixed_time_qf) #F Critical= 2.014419, F cacl is larger than F stat
+
+# 2.014419 < 486.67 -> H1  , implying that this is a valid model. Though this is a relatively weak test, since R2 only has to be greater than 0, the model is worthy of further investigation.
+
+
+#We should now begin to evaluate the importance of any one single explanatory variable. I can immediately see that nonEU_AnnexI_Exp and FDI are the statistical least significant coefficients in the table with pvalues of 0.14715 and 0.13546 respectively. Remove nonEU_AnnexI_Exp first since it is the largest p value
+
+#We will use a two tailed t-test since there should be and indeed there is a small negative relationship between nonEU_AnnexI_Exp and CO2. We would not necessarily expect this
+
+	#H0:b=0 explanatory variable is not important
+	#Ha:b≠0 explanatory variable has an influence
+	#if -t_crit<t_calc<+t_crit=>H0
+	#if t_calc<-t_crit,or,t_calc>+tcrit=>H1
+
+
+#tcalc for nonEU_AnnexI_Exp_qt is -1.4503
+nonEU_AnnexI_Exp_qt <- qt(0.95, 1889) # 1889 DF
+print(nonEU_AnnexI_Exp_qt) # tcrit is 1.645661
+
+
+#-tcrit(-1.645661) < (tcalc) -1.4503 < (+tcrit) 1.645661 -> H0
+
+
+#remove the variable
+
+
+#------
+
+# FDI t test, positive relationship withr response variable, right tailed t test
+
+	#H0:b1=0 explanatory variable is not important
+	#H1:b1>0 explanatory variable has a positive influence
+	#if t_calc<t_crit=>H0
+	#if t_calc>t_crit=>H1
+
+#tcalc=  1.4935
+FDI_qt <-qt(0.95,1889 )
+print(FDI_qt) # tcrit= 1.645661
+
+#(tcrit)1.645661 > (tcalc)1.4935 therefore H1 and keep the variable
+
+
+#opt for lowest p value, want as simpler model as possible in spirit of parsimony
+
+```
+
+
+
+
+```{r}
+
+
+fixed_time_2 <- update(fixed_time, . ~ . - nonEU_AnnexI_Exp)
+summary(fixed_time_2)
+
+fixed_time_3 <- update(fixed_time_2, . ~ . - FDI)
+summary(fixed_time_3)
+
+fixed_time_4 <- update(fixed_time_3, . ~ . - Manufacturing)
+summary(fixed_time_4)
+
+# T test of EU_Exp, negative relationship 
+
+	#H0:b=0 explanatory variable is not important
+	#H1:b<0 explanatory variable has a negative influence
+	#if t_calc>t_crit=>H0
+	#if t_calc<t_crit=>H1
+
+#tcalc -2.4487
+
+EU_Exp_qt <- qt(0.95, 1892) # 1892 DF
+print(EU_Exp_qt) #tcrit= 1.645659
+
+
+# -2.4487 < t_crit -> H1 we keep the variable 
+#the p vlaue is also significant at 0.95 level, acceptable to keep the variable in, even if it is not the mos important explanatory variable (see below)
+# Unlike nonEU_AnnexI_Exp which did not have a significant p value
+
+
+
+fixed_time_5 <- update(fixed_time_4, . ~ . - EU_Exp)
+summary(fixed_time_5)
+
+
+fixed_time_6 <- update(fixed_time_5, . ~ . - Urban_Pop)
+summary(fixed_time_6)
+
+fixed_time_7 <- update(fixed_time_6, . ~ . - Renewables)
+summary(fixed_time_7)
+
+
+
+
+# Create a list of models
+models_list <- list(fixed_time, fixed_time_2, fixed_time_3, fixed_time_4, fixed_time_5, fixed_time_6, fixed_time_7)
+
+# Generate the table
+stargazer(models_list, title="Fixed Effect Models", type="html", header=TRUE, out = "model_graphic_1.html")
+
+
+```
+
+
+#Test your hypothesis H3, EU_Exp model for SO2 and PM10
+
+```{r}
+model_SO2 <- plm(SO2 ~ EU_Exp + GDP + Urban_Pop + Renewables, data= select(SS_imputed_data_final_logged, -c(.imp, .id)),index = c("Name", "Year"), model="within", effect = "time")
+summary(model_SO2)
+
+
+
+model_PM10 <- plm(PM10 ~ EU_Exp + GDP + Urban_Pop + Renewables, data= select(SS_imputed_data_final_logged, -c(.imp, .id)),index = c("Name", "Year"), model="within", effect = "time")
+summary(model_PM10)
+
+summary(fixed_time_4)
+
+models_list_2 <- list(model_SO2, model_PM10)
+stargazer(models_list_2, title="Fixed Effect Models", type="html", header=TRUE, out = "model_graphic_2.html")
+```
+
+
+
+#Check the assumptions of your model, fixed_time_4, and Regression Diagnostics from princeton
+
+```{r}
+# Serial correlation ( Serial correlation tests apply to macro panels with long time series)
+
+# H0) The null is that there is not serial correlation
+
+pbgtest(fixed_time_4)
+
+#because p-value > 0.05, we conclude that there is NO serial correlation
+
+
+# Attempting to create a plot of serial correlation 
+
+serial_corr_test <- plmtest(fixed_time_4, type = "bp", effect = "time")
+print(serial_corr_test)
+
+resid <- residuals(fixed_time_4)
+lagged_resid <- c(rep(NA, 1), resid[-length(resid)])
+plot(lagged_resid, resid, xlab = "Lagged Residuals", ylab = "Residuals",  main = "Diagnostic Plot of Serial Correlation")
+abline(h = 0, lty = 2)
+
+
+```
+
+```{r}
+# Test for Heteroscedasticity in Panel Data Model
+
+# The null hypothesis for the Breusch-Pagan test is homoskedasticity.
+# If the p-value is less than 0.05, we reject the null hypothesis and conclude that 
+# heteroscedasticity is present.
+
+het_test <- bptest(fixed_time_4) # perform Breusch-Pagan test for heteroscedasticity
+print(het_test)
+
+# Extract residuals and fitted values
+resid <- residuals(fixed_time_4)
+fitted <- fitted(fixed_time_4)
+
+# Create scatter plot using ggplot2
+ggplot(data.frame(fitted, resid), aes(x = fitted, y = resid)) +
+  geom_point() +
+  labs(x = "Fitted Values", y = "Residuals") +
+  ggtitle("Scatterplot of Residuals vs Fitted Values")
+
+# Add line of best fit to scatter plot
+ggplot(data.frame(fitted, resid), aes(x = fitted, y = resid)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(x = "Fitted Values", y = "Residuals") +
+  ggtitle("Scatterplot of Residuals vs Fitted Values")
+
+#In the plot, we are looking for a pattern in the distribution of residuals. Ideally, the residuals should be randomly distributed around the horizontal line at y = 0, indicating that there is no systematic pattern in the residuals. If there is a systematic pattern, such as a curve or a U-shape, this suggests that the model may not be a good fit for the data and that there may be some other variable that should be included in the model.
+
+#In addition, we can also check for heteroscedasticity in this plot by examining whether the spread of residuals is the same across the range of fitted values. If the spread of residuals increases or decreases as the fitted values increase, this indicates heteroscedasticity, which means that the variance of the residuals is not constant across the range of the independent variable(s).
+
+
+```
+
+```{r}
+#Endogeneity
+
+
+#is the test of Endogeneity and serial correlation the same/ very similar?
+
+endog_test <- pbgtest(fixed_time_4, order = 1) #Arellano-Bond test for endogeneity
+print(endog_test)
+
+#The Arellano-Bond test for endogeneity tests the null hypothesis that the variables included in the model are exogenous. A rejection of the null hypothesis indicates that at least one of the variables is endogenous and should be instrumented.
+
+#The test provides a p-value, and if the p-value is less than the chosen significance level (typically 0.05), then the null hypothesis is rejected and endogeneity is present in the model.
+
+#In addition, the test provides a test statistic, which can be used to assess the strength of the endogeneity. A higher test statistic suggests stronger evidence of endogeneity
+
+
+
+
+
+
+
+# Extract residuals and fitted values
+resid <- residuals(fixed_time_4)
+fitted <- fitted(fixed_time_4)
+
+# Create partial residuals plot using ggplot2
+ggplot(data.frame(fitted, resid), aes(x = fitted, y = resid)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, color = "red") +
+  labs(x = "Fitted Values", y = "Partial Residuals") +
+  ggtitle("Partial Residuals Plot for Endogeneity")
+
+#In the scatterplot of residuals vs. fitted values for endogeneity, the horizontal line represents the relationship between the partial residuals and the fitted values after controlling for the other covariates in the model. If the line is flat, it suggests that there is no systematic relationship between the partial residuals and the fitted values, which is consistent with the assumption of exogeneity.
+
+#In the scatterplot of residuals vs. fitted values for heteroscedasticity, the horizontal line represents the mean of the residuals. If the line is straight, it suggests that the variance of the residuals is constant across the range of the fitted values, which is consistent with the assumption of homoscedasticity.
+
+
+
+```
+
+```{r}
+#Unit roots/stationarity testing
+
+#The Dickey-Fuller test to check for stochastic trends.
+
+#H0) The null hypothesis is that the series has a unit root (i.e. non-stationary)
+
+#If unit root is present you can take the first difference of the variable.
+
+adf.test(SS_imputed_data_final_logged$CO2, k=2)
+
+#Because p-value < 0.05, we conclude that the series does NOT have unit root. In other words, the series is stationary
+
+
+
+# Perform ADF test on CO2 variable in SS_imputed_data_final_logged data frame
+adf_result <- ur.df(SS_imputed_data_final_logged$CO2, type = "trend", selectlags = "AIC", lags = 10)
+
+par(mar = c(5, 5, 4, 2) + 0.1, mfrow = c(3,1), cex.main = 0.8)
+
+# Plot ADF test results
+plot(adf_result)
+
+#Overall, a rapid decay of the ACF and a relatively small PACF can be taken as evidence that the residuals are approximately white noise, and that the model is doing a good job of accounting for the structure in the data. 
+
+```
+
+
+

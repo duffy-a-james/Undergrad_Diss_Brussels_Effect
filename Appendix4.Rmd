@@ -1,0 +1,792 @@
+---
+title: "Appendix4a"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Load all merhcnaide exports to non-EU Annex 1 countires data for all time periods
+
+
+##AUS
+
+```{r}
+#95_00
+AUS_95_00 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/95_00/AUS_95_00.xlsx", col_names = FALSE)
+
+AUS_95_00 <- AUS_95_00[-c(1:4),]
+
+AUS_95_00 <- AUS_95_00[-2,]
+
+header_row <- AUS_95_00[1,]
+AUS_95_00 <- AUS_95_00[-1,]
+colnames(AUS_95_00) <- setNames(as.character(header_row), NULL)
+
+colnames(AUS_95_00)[1] <- "Name"
+
+
+#01_05
+AUS_01_05 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/01_05/AUS_01_05.xlsx", col_names = FALSE)
+
+AUS_01_05 <- AUS_01_05[-c(1:4),]
+
+AUS_01_05 <- AUS_01_05[-2,]
+
+header_row <- AUS_01_05[1,]
+AUS_01_05 <- AUS_01_05[-1,]
+colnames(AUS_01_05) <- setNames(as.character(header_row), NULL)
+
+colnames(AUS_01_05)[1] <- "Name"
+
+#06_10
+AUS_06_10 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/06_10/AUS_06_10.xlsx", col_names = FALSE)
+
+AUS_06_10 <- AUS_06_10[-c(1:4),]
+
+AUS_06_10 <- AUS_06_10[-2,]
+
+header_row <- AUS_06_10[1,]
+AUS_06_10 <- AUS_06_10[-1,]
+colnames(AUS_06_10) <- setNames(as.character(header_row), NULL)
+
+colnames(AUS_06_10)[1] <- "Name"
+
+
+
+#11_15
+AUS_11_15 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/11_15/AUS_11_15.xlsx", col_names = FALSE)
+
+AUS_11_15 <- AUS_11_15[-c(1:4),]
+
+AUS_11_15 <- AUS_11_15[-2,]
+
+header_row <- AUS_11_15[1,]
+AUS_11_15 <- AUS_11_15[-1,]
+colnames(AUS_11_15) <- setNames(as.character(header_row), NULL)
+
+colnames(AUS_11_15)[1] <- "Name"
+
+
+
+#16_21
+AUS_16_21 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/16_21/AUS_16_21.xlsx", col_names = FALSE)
+
+AUS_16_21  <- AUS_16_21 [-c(1:4),]
+
+AUS_16_21  <- AUS_16_21 [-2,]
+
+header_row <- AUS_16_21 [1,]
+AUS_16_21  <- AUS_16_21 [-1,]
+colnames(AUS_16_21 ) <- setNames(as.character(header_row), NULL)
+
+colnames(AUS_16_21 )[1] <- "Name"
+
+#Merge
+
+AUS1 <- merge(AUS_95_00, AUS_01_05, by = "Name")
+AUS2 <- merge(AUS1, AUS_06_10, by = "Name")
+AUS3 <- merge(AUS2, AUS_11_15, by = "Name")
+AUS4 <- merge(AUS3, AUS_16_21, by = "Name")
+
+#long
+
+colnames(AUS4)[2:28] <- paste("Y_", colnames(AUS4)[2:28], sep = "")
+
+AUS4_long <- pivot_longer(AUS4,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Exports_AUS')
+```
+
+#BLR
+
+```{r}
+#95_00
+BLR_95_00 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/95_00/BLR_95_00.xlsx", col_names = FALSE)
+
+BLR_95_00 <- BLR_95_00[-c(1:4),]
+
+BLR_95_00 <- BLR_95_00[-2,]
+
+header_row <- BLR_95_00[1,]
+BLR_95_00 <- BLR_95_00[-1,]
+colnames(BLR_95_00) <- setNames(as.character(header_row), NULL)
+
+colnames(BLR_95_00)[1] <- "Name"
+
+
+#01_05
+BLR_01_05 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/01_05/BLR_01_05.xlsx", col_names = FALSE)
+
+BLR_01_05 <- BLR_01_05[-c(1:4),]
+
+BLR_01_05 <- BLR_01_05[-2,]
+
+header_row <- BLR_01_05[1,]
+BLR_01_05 <- BLR_01_05[-1,]
+colnames(BLR_01_05) <- setNames(as.character(header_row), NULL)
+
+colnames(BLR_01_05)[1] <- "Name"
+
+#06_10
+BLR_06_10 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/06_10/BLR_06_10.xlsx", col_names = FALSE)
+
+BLR_06_10 <- BLR_06_10[-c(1:4),]
+
+BLR_06_10 <- BLR_06_10[-2,]
+
+header_row <- BLR_06_10[1,]
+BLR_06_10 <- BLR_06_10[-1,]
+colnames(BLR_06_10) <- setNames(as.character(header_row), NULL)
+
+colnames(BLR_06_10)[1] <- "Name"
+
+
+
+#11_15
+BLR_11_15 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/11_15/BLR_11_15.xlsx", col_names = FALSE)
+
+BLR_11_15 <- BLR_11_15[-c(1:4),]
+
+BLR_11_15 <- BLR_11_15[-2,]
+
+header_row <- BLR_11_15[1,]
+BLR_11_15 <- BLR_11_15[-1,]
+colnames(BLR_11_15) <- setNames(as.character(header_row), NULL)
+
+colnames(BLR_11_15)[1] <- "Name"
+
+
+
+#16_21
+BLR_16_21 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/16_21/BLR_16_21.xlsx", col_names = FALSE)
+
+BLR_16_21  <- BLR_16_21 [-c(1:4),]
+
+BLR_16_21  <- BLR_16_21 [-2,]
+
+header_row <- BLR_16_21 [1,]
+BLR_16_21  <- BLR_16_21 [-1,]
+colnames(BLR_16_21 ) <- setNames(as.character(header_row), NULL)
+
+colnames(BLR_16_21 )[1] <- "Name"
+
+#Merge
+
+BLR1 <- merge(BLR_95_00, BLR_01_05, by = "Name")
+BLR2 <- merge(BLR1, BLR_06_10, by = "Name")
+BLR3 <- merge(BLR2, BLR_11_15, by = "Name")
+BLR4 <- merge(BLR3, BLR_16_21, by = "Name")
+
+#long
+
+colnames(BLR4)[2:28] <- paste("Y_", colnames(BLR4)[2:28], sep = "")
+
+BLR4_long <- pivot_longer(BLR4,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Exports_BLR')
+```
+
+
+#CAN
+
+```{r}
+#95_00
+CAN_95_00 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/95_00/CAN_95_00.xlsx", col_names = FALSE)
+
+CAN_95_00 <- CAN_95_00[-c(1:4),]
+
+CAN_95_00 <- CAN_95_00[-2,]
+
+header_row <- CAN_95_00[1,]
+CAN_95_00 <- CAN_95_00[-1,]
+colnames(CAN_95_00) <- setNames(as.character(header_row), NULL)
+
+colnames(CAN_95_00)[1] <- "Name"
+
+
+#01_05
+CAN_01_05 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/01_05/CAN_01_05.xlsx", col_names = FALSE)
+
+CAN_01_05 <- CAN_01_05[-c(1:4),]
+
+CAN_01_05 <- CAN_01_05[-2,]
+
+header_row <- CAN_01_05[1,]
+CAN_01_05 <- CAN_01_05[-1,]
+colnames(CAN_01_05) <- setNames(as.character(header_row), NULL)
+
+colnames(CAN_01_05)[1] <- "Name"
+
+#06_10
+CAN_06_10 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/06_10/CAN_06_10.xlsx", col_names = FALSE)
+
+CAN_06_10 <- CAN_06_10[-c(1:4),]
+
+CAN_06_10 <- CAN_06_10[-2,]
+
+header_row <- CAN_06_10[1,]
+CAN_06_10 <- CAN_06_10[-1,]
+colnames(CAN_06_10) <- setNames(as.character(header_row), NULL)
+
+colnames(CAN_06_10)[1] <- "Name"
+
+
+
+#11_15
+CAN_11_15 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/11_15/CAN_11_15.xlsx", col_names = FALSE)
+
+CAN_11_15 <- CAN_11_15[-c(1:4),]
+
+CAN_11_15 <- CAN_11_15[-2,]
+
+header_row <- CAN_11_15[1,]
+CAN_11_15 <- CAN_11_15[-1,]
+colnames(CAN_11_15) <- setNames(as.character(header_row), NULL)
+
+colnames(CAN_11_15)[1] <- "Name"
+
+
+
+#16_21
+CAN_16_21 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/16_21/CAN_16_21.xlsx", col_names = FALSE)
+
+CAN_16_21  <- CAN_16_21 [-c(1:4),]
+
+CAN_16_21  <- CAN_16_21 [-2,]
+
+header_row <- CAN_16_21 [1,]
+CAN_16_21  <- CAN_16_21 [-1,]
+colnames(CAN_16_21 ) <- setNames(as.character(header_row), NULL)
+
+colnames(CAN_16_21 )[1] <- "Name"
+
+#Merge
+
+CAN1 <- merge(CAN_95_00, CAN_01_05, by = "Name")
+CAN2 <- merge(CAN1, CAN_06_10, by = "Name")
+CAN3 <- merge(CAN2, CAN_11_15, by = "Name")
+CAN4 <- merge(CAN3, CAN_16_21, by = "Name")
+
+#long
+
+colnames(CAN4)[2:28] <- paste("Y_", colnames(CAN4)[2:28], sep = "")
+
+CAN4_long <- pivot_longer(CAN4,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Exports_CAN')
+```
+
+
+
+#JPN
+
+```{r}
+#95_00
+JPN_95_00 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/95_00/JPN_95_00.xlsx", col_names = FALSE)
+
+JPN_95_00 <- JPN_95_00[-c(1:4),]
+
+JPN_95_00 <- JPN_95_00[-2,]
+
+header_row <- JPN_95_00[1,]
+JPN_95_00 <- JPN_95_00[-1,]
+colnames(JPN_95_00) <- setNames(as.character(header_row), NULL)
+
+colnames(JPN_95_00)[1] <- "Name"
+
+
+#01_05
+JPN_01_05 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/01_05/JPN_01_05.xlsx", col_names = FALSE)
+
+JPN_01_05 <- JPN_01_05[-c(1:4),]
+
+JPN_01_05 <- JPN_01_05[-2,]
+
+header_row <- JPN_01_05[1,]
+JPN_01_05 <- JPN_01_05[-1,]
+colnames(JPN_01_05) <- setNames(as.character(header_row), NULL)
+
+colnames(JPN_01_05)[1] <- "Name"
+
+#06_10
+JPN_06_10 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/06_10/JPN_06_10.xlsx", col_names = FALSE)
+
+JPN_06_10 <- JPN_06_10[-c(1:4),]
+
+JPN_06_10 <- JPN_06_10[-2,]
+
+header_row <- JPN_06_10[1,]
+JPN_06_10 <- JPN_06_10[-1,]
+colnames(JPN_06_10) <- setNames(as.character(header_row), NULL)
+
+colnames(JPN_06_10)[1] <- "Name"
+
+
+
+#11_15
+JPN_11_15 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/11_15/JPN_11_15.xlsx", col_names = FALSE)
+
+JPN_11_15 <- JPN_11_15[-c(1:4),]
+
+JPN_11_15 <- JPN_11_15[-2,]
+
+header_row <- JPN_11_15[1,]
+JPN_11_15 <- JPN_11_15[-1,]
+colnames(JPN_11_15) <- setNames(as.character(header_row), NULL)
+
+colnames(JPN_11_15)[1] <- "Name"
+
+
+
+#16_21
+JPN_16_21 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/16_21/JPN_16_21.xlsx", col_names = FALSE)
+
+JPN_16_21  <- JPN_16_21 [-c(1:4),]
+
+JPN_16_21  <- JPN_16_21 [-2,]
+
+header_row <- JPN_16_21 [1,]
+JPN_16_21  <- JPN_16_21 [-1,]
+colnames(JPN_16_21 ) <- setNames(as.character(header_row), NULL)
+
+colnames(JPN_16_21 )[1] <- "Name"
+
+#Merge
+
+JPN1 <- merge(JPN_95_00, JPN_01_05, by = "Name")
+JPN2 <- merge(JPN1, JPN_06_10, by = "Name")
+JPN3 <- merge(JPN2, JPN_11_15, by = "Name")
+JPN4 <- merge(JPN3, JPN_16_21, by = "Name")
+
+#long
+
+colnames(JPN4)[2:28] <- paste("Y_", colnames(JPN4)[2:28], sep = "")
+
+JPN4_long <- pivot_longer(JPN4,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Exports_JPN')
+```
+
+
+
+#NZL
+
+```{r}
+#95_00
+NZL_95_00 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/95_00/NZL_95_00.xlsx", col_names = FALSE)
+
+NZL_95_00 <- NZL_95_00[-c(1:4),]
+
+NZL_95_00 <- NZL_95_00[-2,]
+
+header_row <- NZL_95_00[1,]
+NZL_95_00 <- NZL_95_00[-1,]
+colnames(NZL_95_00) <- setNames(as.character(header_row), NULL)
+
+colnames(NZL_95_00)[1] <- "Name"
+
+
+#01_05
+NZL_01_05 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/01_05/NZL_01_05.xlsx", col_names = FALSE)
+
+NZL_01_05 <- NZL_01_05[-c(1:4),]
+
+NZL_01_05 <- NZL_01_05[-2,]
+
+header_row <- NZL_01_05[1,]
+NZL_01_05 <- NZL_01_05[-1,]
+colnames(NZL_01_05) <- setNames(as.character(header_row), NULL)
+
+colnames(NZL_01_05)[1] <- "Name"
+
+#06_10
+NZL_06_10 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/06_10/NZL_06_10.xlsx", col_names = FALSE)
+
+NZL_06_10 <- NZL_06_10[-c(1:4),]
+
+NZL_06_10 <- NZL_06_10[-2,]
+
+header_row <- NZL_06_10[1,]
+NZL_06_10 <- NZL_06_10[-1,]
+colnames(NZL_06_10) <- setNames(as.character(header_row), NULL)
+
+colnames(NZL_06_10)[1] <- "Name"
+
+
+
+#11_15
+NZL_11_15 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/11_15/NZL_11_15.xlsx", col_names = FALSE)
+
+NZL_11_15 <- NZL_11_15[-c(1:4),]
+
+NZL_11_15 <- NZL_11_15[-2,]
+
+header_row <- NZL_11_15[1,]
+NZL_11_15 <- NZL_11_15[-1,]
+colnames(NZL_11_15) <- setNames(as.character(header_row), NULL)
+
+colnames(NZL_11_15)[1] <- "Name"
+
+
+
+#16_21
+NZL_16_21 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/16_21/NZL_16_21.xlsx", col_names = FALSE)
+
+NZL_16_21  <- NZL_16_21 [-c(1:4),]
+
+NZL_16_21  <- NZL_16_21 [-2,]
+
+header_row <- NZL_16_21 [1,]
+NZL_16_21  <- NZL_16_21 [-1,]
+colnames(NZL_16_21 ) <- setNames(as.character(header_row), NULL)
+
+colnames(NZL_16_21 )[1] <- "Name"
+
+#Merge
+
+NZL1 <- merge(NZL_95_00, NZL_01_05, by = "Name")
+NZL2 <- merge(NZL1, NZL_06_10, by = "Name")
+NZL3 <- merge(NZL2, NZL_11_15, by = "Name")
+NZL4 <- merge(NZL3, NZL_16_21, by = "Name")
+
+#long
+
+colnames(NZL4)[2:28] <- paste("Y_", colnames(NZL4)[2:28], sep = "")
+
+NZL4_long <- pivot_longer(NZL4,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Exports_NZL')
+```
+
+
+#RUS
+
+```{r}
+#95_00
+RUS_95_00 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/95_00/RUS_95_00.xlsx", col_names = FALSE)
+
+RUS_95_00 <- RUS_95_00[-c(1:4),]
+
+RUS_95_00 <- RUS_95_00[-2,]
+
+header_row <- RUS_95_00[1,]
+RUS_95_00 <- RUS_95_00[-1,]
+colnames(RUS_95_00) <- setNames(as.character(header_row), NULL)
+
+colnames(RUS_95_00)[1] <- "Name"
+
+
+#01_05
+RUS_01_05 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/01_05/RUS_01_05.xlsx", col_names = FALSE)
+
+RUS_01_05 <- RUS_01_05[-c(1:4),]
+
+RUS_01_05 <- RUS_01_05[-2,]
+
+header_row <- RUS_01_05[1,]
+RUS_01_05 <- RUS_01_05[-1,]
+colnames(RUS_01_05) <- setNames(as.character(header_row), NULL)
+
+colnames(RUS_01_05)[1] <- "Name"
+
+#06_10
+RUS_06_10 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/06_10/RUS_06_10.xlsx", col_names = FALSE)
+
+RUS_06_10 <- RUS_06_10[-c(1:4),]
+
+RUS_06_10 <- RUS_06_10[-2,]
+
+header_row <- RUS_06_10[1,]
+RUS_06_10 <- RUS_06_10[-1,]
+colnames(RUS_06_10) <- setNames(as.character(header_row), NULL)
+
+colnames(RUS_06_10)[1] <- "Name"
+
+
+
+#11_15
+RUS_11_15 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/11_15/RUS_11_15.xlsx", col_names = FALSE)
+
+RUS_11_15 <- RUS_11_15[-c(1:4),]
+
+RUS_11_15 <- RUS_11_15[-2,]
+
+header_row <- RUS_11_15[1,]
+RUS_11_15 <- RUS_11_15[-1,]
+colnames(RUS_11_15) <- setNames(as.character(header_row), NULL)
+
+colnames(RUS_11_15)[1] <- "Name"
+
+
+
+#16_21
+RUS_16_21 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/16_21/RUS_16_21.xlsx", col_names = FALSE)
+
+RUS_16_21  <- RUS_16_21 [-c(1:4),]
+
+RUS_16_21  <- RUS_16_21 [-2,]
+
+header_row <- RUS_16_21 [1,]
+RUS_16_21  <- RUS_16_21 [-1,]
+colnames(RUS_16_21 ) <- setNames(as.character(header_row), NULL)
+
+colnames(RUS_16_21 )[1] <- "Name"
+
+#Merge
+
+RUS1 <- merge(RUS_95_00, RUS_01_05, by = "Name")
+RUS2 <- merge(RUS1, RUS_06_10, by = "Name")
+RUS3 <- merge(RUS2, RUS_11_15, by = "Name")
+RUS4 <- merge(RUS3, RUS_16_21, by = "Name")
+
+#long
+
+colnames(RUS4)[2:28] <- paste("Y_", colnames(RUS4)[2:28], sep = "")
+
+RUS4_long <- pivot_longer(RUS4,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Exports_RUS')
+```
+
+
+
+#TUR
+
+```{r}
+#95_00
+TUR_95_00 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/95_00/TUR_95_00.xlsx", col_names = FALSE)
+
+TUR_95_00 <- TUR_95_00[-c(1:4),]
+
+TUR_95_00 <- TUR_95_00[-2,]
+
+header_row <- TUR_95_00[1,]
+TUR_95_00 <- TUR_95_00[-1,]
+colnames(TUR_95_00) <- setNames(as.character(header_row), NULL)
+
+colnames(TUR_95_00)[1] <- "Name"
+
+
+#01_05
+TUR_01_05 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/01_05/RUS_01_05.xlsx", col_names = FALSE)
+
+TUR_01_05 <- TUR_01_05[-c(1:4),]
+
+TUR_01_05 <- TUR_01_05[-2,]
+
+header_row <- TUR_01_05[1,]
+TUR_01_05 <- TUR_01_05[-1,]
+colnames(TUR_01_05) <- setNames(as.character(header_row), NULL)
+
+colnames(TUR_01_05)[1] <- "Name"
+
+#06_10
+TUR_06_10 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/06_10/TUR_06_10.xlsx", col_names = FALSE)
+
+TUR_06_10 <- TUR_06_10[-c(1:4),]
+
+TUR_06_10 <- TUR_06_10[-2,]
+
+header_row <- TUR_06_10[1,]
+TUR_06_10 <- TUR_06_10[-1,]
+colnames(TUR_06_10) <- setNames(as.character(header_row), NULL)
+
+colnames(TUR_06_10)[1] <- "Name"
+
+
+
+#11_15
+TUR_11_15 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/11_15/TUR_11_15.xlsx", col_names = FALSE)
+
+TUR_11_15 <- TUR_11_15[-c(1:4),]
+
+TUR_11_15 <- TUR_11_15[-2,]
+
+header_row <- TUR_11_15[1,]
+TUR_11_15 <- TUR_11_15[-1,]
+colnames(TUR_11_15) <- setNames(as.character(header_row), NULL)
+
+colnames(TUR_11_15)[1] <- "Name"
+
+
+
+#16_21
+TUR_16_21 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/16_21/TUR_16_21.xlsx", col_names = FALSE)
+
+TUR_16_21  <- TUR_16_21 [-c(1:4),]
+
+TUR_16_21  <- TUR_16_21 [-2,]
+
+header_row <- TUR_16_21 [1,]
+TUR_16_21  <- TUR_16_21 [-1,]
+colnames(TUR_16_21 ) <- setNames(as.character(header_row), NULL)
+
+colnames(TUR_16_21 )[1] <- "Name"
+
+#Merge
+
+TUR1 <- merge(TUR_95_00, TUR_01_05, by = "Name")
+TUR2 <- merge(TUR1, TUR_06_10, by = "Name")
+TUR3 <- merge(TUR2, TUR_11_15, by = "Name")
+TUR4 <- merge(TUR3, TUR_16_21, by = "Name")
+
+#long
+
+colnames(TUR4)[2:28] <- paste("Y_", colnames(TUR4)[2:28], sep = "")
+
+TUR4_long <- pivot_longer(TUR4,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Exports_TUR')
+```
+
+
+#USA
+
+```{r}
+#95_00
+USA_95_00 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/95_00/USA_95_00.xlsx", col_names = FALSE)
+
+USA_95_00 <- USA_95_00[-c(1:4),]
+
+USA_95_00 <- USA_95_00[-2,]
+
+header_row <- USA_95_00[1,]
+USA_95_00 <- USA_95_00[-1,]
+colnames(USA_95_00) <- setNames(as.character(header_row), NULL)
+
+colnames(USA_95_00)[1] <- "Name"
+
+
+#01_05
+USA_01_05 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/01_05/USA_01_05.xlsx", col_names = FALSE)
+
+USA_01_05 <- USA_01_05[-c(1:4),]
+
+USA_01_05 <- USA_01_05[-2,]
+
+header_row <- USA_01_05[1,]
+USA_01_05 <- USA_01_05[-1,]
+colnames(USA_01_05) <- setNames(as.character(header_row), NULL)
+
+colnames(USA_01_05)[1] <- "Name"
+
+#06_10
+USA_06_10 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/06_10/USA_06_10.xlsx", col_names = FALSE)
+
+USA_06_10 <- USA_06_10[-c(1:4),]
+
+USA_06_10 <- USA_06_10[-2,]
+
+header_row <- USA_06_10[1,]
+USA_06_10 <- USA_06_10[-1,]
+colnames(USA_06_10) <- setNames(as.character(header_row), NULL)
+
+colnames(USA_06_10)[1] <- "Name"
+
+
+
+#11_15
+USA_11_15 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/11_15/USA_11_15.xlsx", col_names = FALSE)
+
+USA_11_15 <- USA_11_15[-c(1:4),]
+
+USA_11_15 <- USA_11_15[-2,]
+
+header_row <- USA_11_15[1,]
+USA_11_15 <- USA_11_15[-1,]
+colnames(USA_11_15) <- setNames(as.character(header_row), NULL)
+
+colnames(USA_11_15)[1] <- "Name"
+
+
+
+#16_21
+USA_16_21 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/nonEU_AnnexI/16_21/USA_16_21.xlsx", col_names = FALSE)
+
+USA_16_21  <- USA_16_21 [-c(1:4),]
+
+USA_16_21  <- USA_16_21 [-2,]
+
+header_row <- USA_16_21 [1,]
+USA_16_21  <- USA_16_21 [-1,]
+colnames(USA_16_21 ) <- setNames(as.character(header_row), NULL)
+
+colnames(USA_16_21 )[1] <- "Name"
+
+#Merge
+
+USA1 <- merge(USA_95_00, USA_01_05, by = "Name")
+USA2 <- merge(USA1, USA_06_10, by = "Name")
+USA3 <- merge(USA2, USA_11_15, by = "Name")
+USA4 <- merge(USA3, USA_16_21, by = "Name")
+
+#long
+
+colnames(USA4)[2:28] <- paste("Y_", colnames(USA4)[2:28], sep = "")
+
+USA4_long <- pivot_longer(USA4,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Exports_USA')
+```
+
+
+
+## Merge long form merhcnaide exports to non-EU Annex 1 countires data 
+
+```{r}
+non_eu_annex1_1<- merge(AUS4_long, BLR4_long, by = c("Name","Year"), all.x = TRUE)
+non_eu_annex1_2<- merge(non_eu_annex1_1, CAN4_long, by = c("Name","Year"), all.x = TRUE)
+non_eu_annex1_3<- merge(non_eu_annex1_2, JPN4_long, by = c("Name","Year"), all.x = TRUE)
+non_eu_annex1_4<- merge(non_eu_annex1_3, NZL4_long, by = c("Name","Year"), all.x = TRUE)
+non_eu_annex1_5<- merge(non_eu_annex1_4, RUS4_long, by = c("Name","Year"), all.x = TRUE)
+non_eu_annex1_6<- merge(non_eu_annex1_5, TUR4_long, by = c("Name","Year"), all.x = TRUE)
+non_eu_annex1_7<- merge(non_eu_annex1_6, USA4_long, by = c("Name","Year"), all.x = TRUE)
+```
+
+
+# Cleaning data and creating only a total column 
+```{r}
+summary(non_eu_annex1_7)
+
+# '..' into 0
+non_eu_annex1_7[, 3:10][non_eu_annex1_7[, 3:10] == ".."] <- "0"
+non_eu_annex1_7[, 3:10] <- lapply(non_eu_annex1_7[, 3:10], as.numeric)
+
+#All relevant values into numeric
+non_eu_annex1_7[, 3:10] <- lapply(non_eu_annex1_7[, 3:10], as.numeric)
+
+# Create a total column
+non_eu_annex1_7$Merchandise_Exported_NonEU_Annex1_thousandsUSD <- rowSums(non_eu_annex1_7[, -(1:2)])
+
+#Only show total
+non_eu_annex1_8 <- non_eu_annex1_7[, c("Name", "Year", "Merchandise_Exported_NonEU_Annex1_thousandsUSD")]
+
+```
+
+
+##Merge with new_exp_val_7
+
+```{r}
+completley_loaded_data<- merge(new_exp_val_7, non_eu_annex1_8, by = c("Name","Year"), all.x = TRUE)
+write.xlsx(completley_loaded_data, "EU_Effect.xlsx", sheetName = "EU_Effect")
+```
+

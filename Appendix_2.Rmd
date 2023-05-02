@@ -1,0 +1,270 @@
+---
+title: "Appendix_2"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Load and merge all the years for merchandise export value to the EU
+
+```{r, echo=FALSE, include=FALSE}
+
+#load data
+
+export_data_1995_2000 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/Clean_Data/export_data_1995_2000.xlsx")
+export_data_2001_2005 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/Clean_Data/export_data_2001_2005.xlsx")
+export_data_2006_2010 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/Clean_Data/export_data_2006_2010.xlsx")
+export_data_2011_2015 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/Clean_Data/export_data_2011_2015.xlsx")
+export_data_2016_2021 <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/UNCTAD/Clean_Data/export_data_2016_2021.xlsx")
+
+#renaming column that will be used for the merges
+colnames(export_data_1995_2000)[1] ="Name"
+colnames(export_data_2001_2005)[1] ="Name"
+colnames(export_data_2006_2010)[1] ="Name"
+colnames(export_data_2011_2015)[1] ="Name"
+colnames(export_data_2016_2021)[1] ="Name"
+
+
+
+# now merging all periods, still in wide format
+ev1 <- merge(export_data_1995_2000, export_data_2001_2005 , by= "Name", all.x = TRUE  )
+ev2 <- merge(ev1, export_data_2006_2010, by= "Name", all.x = TRUE )
+ev3 <- merge(ev2, export_data_2011_2015, by= "Name", all.x = TRUE )
+ev4 <- merge(ev3, export_data_2016_2021, by= "Name", all.x = TRUE )
+
+
+
+
+#add common name prefix before pivot to long
+colnames(ev4)[2:28] <- paste("Y_", colnames(ev4)[2:28], sep = "")
+
+# Export value df pivot wide to long, converting all into long formar
+ev4_long <- pivot_longer(ev4,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Merchandise_Exported_to_EU_thousandsUSD')
+
+```
+
+## Merge pollutants_pop with Export Value 
+
+```{r,echo=FALSE, include=FALSE}
+#NB This will be the first data frame to contain dependent varriables (three pollutants) and main indepdent varriable (merchandise export value to the EU)
+
+new_exp_val <- merge(pollutants_pop, ev4_long , by= c("Name", "Year"))
+attach(new_exp_val)
+```
+
+
+
+
+## Tidy up new_exp_val for the next mergers 
+
+```{r,echo=FALSE }
+
+names(new_exp_val)[names(new_exp_val) == "Country_code_A3"] <- "Country_Code"
+
+```
+
+
+
+
+## Load GDP data and merege
+```{r}
+# For the export data, data in dollars are expressed in current US dollars of the year to which they refer, as per the UNCTAD STAT website. This GPD data is also in current USD. Once all monetary data is loaded need to adjust for GDP
+
+#load
+gdp_current_usd <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/WORLD\ BANK/wb_gdp_current_usd.xlsx")
+
+
+#First rename all years by deleting whats in the brackets
+
+cols_to_modify <- 3:64
+names(gdp_current_usd)[cols_to_modify] <- gsub("\\[.*\\]", "", names(gdp_current_usd)[cols_to_modify])
+
+
+#add common name prefix before pivot to long
+colnames(gdp_current_usd)[3:64] <- paste("Y_", colnames(gdp_current_usd)[3:64], sep = "")
+
+#into long
+gdp_current_usd_long <- pivot_longer(gdp_current_usd,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='GDP_cur_USD')
+
+
+#tidy up gdp
+attach(gdp_current_usd_long)
+
+
+names(gdp_current_usd_long)[names(gdp_current_usd_long) == "Country Code"] <- "Country_Code"
+names(gdp_current_usd_long)[names(gdp_current_usd_long) == "Country Name"] <- "Name"
+
+gdp_current_usd_long <- filter(gdp_current_usd_long, Year >= 1995 & Year <= 2019)
+
+gdp_current_usd_long <- subset(gdp_current_usd_long, Country_Code %in% new_exp_val$Country_Code)
+
+#REMOVING WHITESPACE
+
+gdp_current_usd_long$Name <- trimws(gdp_current_usd_long$Name)
+gdp_current_usd_long$Year <- trimws(gdp_current_usd_long$Year)
+gdp_current_usd_long$Country_Code <- trimws(gdp_current_usd_long$Country_Code)
+
+#merge
+
+new_exp_val_2 <- merge(new_exp_val, gdp_current_usd_long, by = c("Name","Year", "Country_Code"), all.x = TRUE)
+
+```
+
+
+## Load coal data and merge
+
+```{r}
+#load 
+coal <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/WORLD\ BANK/Electricity_from_coal_percent_of_total_World_Development_Indicators.xlsx")
+
+#First rename all years by deleting whats in the brackets
+
+cols_to_modify <- 3:64
+names(coal)[cols_to_modify] <- gsub("\\[.*\\]", "", names(coal)[cols_to_modify])
+
+#add common name prefix before pivot to long
+colnames(coal)[3:64] <- paste("Y_", colnames(coal)[3:64], sep = "")
+
+#into long
+coal_long <- pivot_longer(coal,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Electricity_from_coal_%oftotal')
+
+#tidy up
+attach(coal_long)
+
+coal_long$Name <- trimws(coal_long$Name)
+coal_long$Year <- trimws(coal_long$Year)
+coal_long$Country_Code <- trimws(coal_long$Country_Code)
+
+
+#merge
+
+new_exp_val_3 <- merge(new_exp_val_2, coal_long, by = c("Name","Year","Country_Code"), all.x = TRUE)
+
+```
+
+
+## Load renewable data and merge
+
+```{r}
+#load 
+renew <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/WORLD\ BANK/Renewable_electricity_percentof_total\ Renewable_electricity_percentoftotal.xlsx")
+
+#First rename all years by deleting whats in the brackets
+
+cols_to_modify <- 3:64
+names(renew)[cols_to_modify] <- gsub("\\[.*\\]", "", names(renew)[cols_to_modify])
+
+#add common name prefix before pivot to long
+colnames(renew)[3:64] <- paste("Y_", colnames(renew)[3:64], sep = "")
+
+#into long
+renew_long <- pivot_longer(renew,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Electricity_from_renewables_%oftotal')
+
+#tidy up
+attach(coal_long)
+
+renew_long$Name <- trimws(renew_long$Name)
+renew_long$Year <- trimws(renew_long$Year)
+renew_long$Country_Code <- trimws(renew_long$Country_Code)
+
+
+#merge
+
+new_exp_val_4 <- merge(new_exp_val_3, renew_long, by = c("Name","Year","Country_Code"), all.x = TRUE)
+
+```
+
+
+## Load manufacturing data and merge
+
+```{r}
+#load 
+manufact <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/WORLD\ BANK/Manufacturing_value_added_%ofGDP.xlsx")
+
+#First rename all years by deleting whats in the brackets
+
+cols_to_modify <- 3:64
+names(manufact)[cols_to_modify] <- gsub("\\[.*\\]", "", names(manufact)[cols_to_modify])
+
+#add common name prefix before pivot to long
+colnames(manufact)[3:64] <- paste("Y_", colnames(manufact)[3:64], sep = "")
+
+#into long
+
+manufact_long <- pivot_longer(manufact,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='Manufacturing_value_added_%ofGDP')
+
+#tidy up
+attach(manufact_long)
+
+manufact_long$Name <- trimws(manufact_long$Name)
+manufact_long$Year <- trimws(manufact_long$Year)
+manufact_long$Country_Code <- trimws(manufact_long$Country_Code)
+
+
+#merge
+
+new_exp_val_5 <- merge(new_exp_val_4, manufact_long, by = c("Name","Year","Country_Code"), all.x = TRUE)
+
+```
+
+## Load FDI inflow data and merge
+
+```{r}
+#load 
+FDI <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/WORLD\ BANK/FDI_netinflow_%ofGDP.xlsx")
+
+#First rename all years by deleting whats in the brackets
+
+cols_to_modify <- 3:64
+names(FDI)[cols_to_modify] <- gsub("\\[.*\\]", "", names(FDI)[cols_to_modify])
+
+#add common name prefix before pivot to long
+colnames(FDI)[3:64] <- paste("Y_", colnames(FDI)[3:64], sep = "")
+
+#into long
+
+FDI_long <- pivot_longer(FDI,
+                          cols = starts_with("Y_"),
+                          names_to = "Year",
+                          names_prefix = "Y_",
+                          values_to='FDI_netinflow_%ofGDP')
+
+#tidy up
+attach(FDI_long)
+
+FDI_long$Name <- trimws(FDI_long$Name)
+FDI_long$Year <- trimws(FDI_long$Year)
+FDI_long$Country_Code <- trimws(FDI_long$Country_Code)
+
+
+#merge
+
+new_exp_val_6 <- merge(new_exp_val_5, FDI_long, by = c("Name","Year","Country_Code"), all.x = TRUE)
+
+```
+
+

@@ -1,0 +1,171 @@
+---
+title: "Appendix"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set
+```
+
+## Loading Packages
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(readxl)
+library(dplyr)
+library(tidyselect)
+library(writexl)
+library(openxlsx)
+library(mice)
+library(ranger)
+library(missForest)
+library(naniar)
+library(panelr)
+library(ggplot2)
+library(reshape)
+library(mitools)
+library(dplyr)
+library(GGally)
+library(ggplot2)
+library(webshot)
+library(rsq)
+library(caret)
+library(knitr)
+library(kableExtra)
+library(Metrics)
+library(stargazer)
+library(sjPlot)
+library(plm)       
+library(car)       
+library(gplots)    
+library(tseries)   
+library(lmtest)
+library(ggfortify)
+library(urca)
+```
+
+## Loading CO2 emmissions 
+
+```{r, echo=FALSE}
+CO2_wide <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/EDGAR/IEA_EDGAR_CO2_1970-2021.xlsx")
+
+attach(CO2_wide)
+
+# wide into long format
+CO2_long <- pivot_longer(CO2_wide,
+                              cols = starts_with("Y_"),
+                              names_to = "Year",
+                              names_prefix = "Y_",
+                              values_to='CO2_kt')
+```
+
+## Loading SO2 emmissions 
+
+```{r, echo=FALSE}
+SO2_wide <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/EDGAR/SO2_1970_2018.xlsx")
+
+SO2_long <- pivot_longer(SO2_wide,
+                              cols = starts_with("Y_"),
+                              names_to = "Year",
+                              names_prefix = "Y_",
+                              values_to='SO2_kt')
+
+#Delete irrelevant column in SO2 long
+SO2_long <- within(SO2_long, rm("C_group_IM24_sh"))
+```
+
+## Merge CO2 and SO2 dataframe
+
+```{r, echo=FALSE}
+CO2_SO2_long <- merge(CO2_long, SO2_long ,by=c("IPCC_annex","Country_code_A3","Name","Year"))
+CO2_SO2_long <- within(CO2_SO2_long, rm("Substance.x","Substance.y"))
+```
+
+## Adding PM10 emmissions
+
+```{r, echo=FALSE}
+PM10_wide <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/EDGAR/PM10_1970_2018.xlsx")
+
+PM10_long <- pivot_longer(PM10_wide,
+                              cols = starts_with("Y_"),
+                              names_to = "Year",
+                              names_prefix = "Y_",
+                              values_to='PM10_kt')
+```
+
+## Merge PM10 with dataframe containg CO2 and SO2 emmissions
+
+```{r, echo=FALSE}
+pollutants_long <- merge(CO2_SO2_long, PM10_long ,by=c("IPCC_annex","Country_code_A3","Name","Year"))
+pollutants_long <- within(pollutants_long, rm("C_group_IM24_sh","Substance"))
+```
+
+## Glimpse into Pollutant varriables
+
+```{r, echo=TRUE}
+head(pollutants_long)
+```
+
+## Loading Urban Population
+
+```{r, echo=FALSE}
+urbanpop_wide <- read_excel("/Users/jamesduffy/Library/CloudStorage/OneDrive-TheUniversityofManchester/BASS/Modules/Year\ 3/Sem\ 2/Diss/Data/WORLD\ BANK/wb_urban_population_percent.xlsx")
+```
+
+## Cleaning Urban Population
+
+```{r, echo= FALSE, include=FALSE}
+#transform year column names of urbanpop
+names(urbanpop_wide) <- gsub("\\[YR\\d+\\]", "", names(urbanpop_wide)) #format year column names
+
+# view original column names
+names(urbanpop_wide)
+
+# specify range of year columns to modify and then modify
+start_year <- 1960
+end_year <- 2021
+year_cols <- which(as.numeric(names(urbanpop_wide)) >= start_year & as.numeric(names(urbanpop_wide)) <= end_year)
+
+# modify year column names by adding "Y_" prefix
+names(urbanpop_wide)[year_cols] <- paste0("Y_", names(urbanpop_wide)[year_cols])
+
+# view modified column names
+names(urbanpop_wide)
+
+#Put urbanpop into long format
+
+urbanpop_long <- pivot_longer(urbanpop_wide,
+                              cols = starts_with("Y_"),
+                              names_to = "Year",
+                              names_prefix = "Y_",
+                              values_to='Urban_Pop_%of_total')
+
+# before merge, rename relevant columns of urbanpop
+
+colnames(urbanpop_long)[1] ="Name"
+colnames(urbanpop_long)[2] ="Country_code_A3"
+
+
+#filter for only relevant year in urban pop
+
+attach(urbanpop_long)
+
+urbanpop_long$Year <- as.numeric(urbanpop_long$Year)
+
+urbanpop_long <- urbanpop_long[!(urbanpop_long$Year >= 1960 & urbanpop_long$Year <= 1969), ]
+urbanpop_long <- urbanpop_long[!(urbanpop_long$Year >= 2019 & urbanpop_long$Year <= 2021), ]
+summary(urbanpop_long)
+
+#filter for only relevant countries in urban pop
+
+urbanpop_long <- urbanpop_long[urbanpop_long$Country_code_A3 %in% pollutants_long$Country_code_A3, ]
+
+```
+
+
+## Merge Urban Population with Pollutants 
+
+```{r, echo=FALSE}
+pollutants_pop  <- merge(pollutants_long, urbanpop_long ,by=c("Country_code_A3","Name","Year"),all.x = TRUE  )
+```
+
